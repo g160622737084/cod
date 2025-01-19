@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
+#define SIZE 20
+// Structure to represent a substitution
+struct substitution {
+char variable[SIZE];
+char value[SIZE];
+};
+typedef struct substitution Substitution;
+int no_of_substitutions = 0;
+Substitution substitutions[SIZE];
+// Function to check if a variable already has a substitution
+int isVariablePresent(char variable[]) {
+for (int i = 0; i < no_of_substitutions; i++) {
+if (strcmp(substitutions[i].variable, variable) == 0) {
+return i;
+}
+}
+return -1;
+}
+// Function to check if the term is a variable (starts with a letter, for simplicity)
+bool isVariable(char term[]) {
+return (term[0] >= 'a' && term[0] <= 'z');
+}
+// Function to unify two terms
+int unify(char term1[], char term2[]) {
+// Case 1: Both terms are the same
+if (strcmp(term1, term2) == 0) {
+return 1;
+}
+// Case 2: term1 is a variable
+int index = isVariablePresent(term1);
+if (isVariable(term1)) {
+// Check if term1 is already substituted with term2
+if (index != -1 && strcmp(substitutions[index].value, term2) == 0) {
+return 1; // Already unified
+}
+// Avoid circular unification like X = f(X)
+if (strstr(term2, term1) != NULL) {
+return 0; // Circular reference
+}
+// Otherwise, add a substitution
+strcpy(substitutions[no_of_substitutions].variable, term1);
+strcpy(substitutions[no_of_substitutions].value, term2);
+
+no_of_substitutions++;
+return 1;
+}
+// Case 3: term2 is a variable
+if (isVariable(term2)) {
+// Check if term2 is already substituted with term1
+index = isVariablePresent(term2);
+if (index != -1 && strcmp(substitutions[index].value, term1) == 0) {
+return 1; // Already unified
+}
+// Avoid circular unification like X = f(X)
+if (strstr(term1, term2) != NULL) {
+return 0; // Circular reference
+}
+// Otherwise, add a substitution
+strcpy(substitutions[no_of_substitutions].variable, term2);
+strcpy(substitutions[no_of_substitutions].value, term1);
+no_of_substitutions++;
+return 1;
+}
+// Case 4: Both terms are constants or compound terms (not variables)
+return 0; // Cannot unify constant with constant or compound terms
+}
+int main() {
+printf("Enter the number of term pairs: ");
+int n;
+scanf("%d", &n);
+char term1[SIZE], term2[SIZE];
+printf("Enter the terms line by line:\n");
+for (int i = 0; i < n; i++) {
+scanf("%s %s", term1, term2);
+int isUnifiable = unify(term1, term2);
+if (isUnifiable==0) {
+printf("Terms are not unifiable!\n");
+return 0;
+}
+}
+printf("Terms are successfully unified. Substitutions:\n");
+for (int i = 0; i < no_of_substitutions; i++) {
+printf("%s = %s\n", substitutions[i].variable, substitutions[i].value);
+}
+return 0;
+}
